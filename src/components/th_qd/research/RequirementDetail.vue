@@ -134,7 +134,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { message } from 'ant-design-vue'
 import {
   FileTextOutlined,
