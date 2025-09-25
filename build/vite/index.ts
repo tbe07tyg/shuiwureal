@@ -6,7 +6,6 @@ import EslintPlugin from 'vite-plugin-eslint'
 import PurgeIcons from 'vite-plugin-purge-icons'
 import { ViteEjsPlugin } from 'vite-plugin-ejs'
 // @ts-ignore
-import ElementPlus from 'unplugin-element-plus/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
@@ -30,7 +29,6 @@ export function createVitePlugins() {
     UnoCSS(),
     progress(),
     PurgeIcons(),
-    ElementPlus({}),
     AutoImport({
       include: [
         /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
