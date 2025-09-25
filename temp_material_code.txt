@@ -1,0 +1,12 @@
+    // 准备会议材料数据
+    const midtermMeetingMaterialDOList = []
+    if (meetingForm.value.materials && meetingForm.value.materials.length > 0) {
+      midtermMeetingMaterialDOList.push(...meetingForm.value.materials.map((item, index) => ({
+        materialSource: 1, // 会议材料来源：1-上传，2-链接
+        materialName: item.fileName || item.uploadResponse?.fileName || item.name || '未命名文件',
+        fileUrl: item.url || item.fileUrl || item.uploadResponse?.fileUrl || item.uploadResponse?.url || '',
+        fileSize: item.fileSize || item.uploadResponse?.fileSize || item.size || 0,
+        fileSuffix: item.fileSuffix || (item.name ? item.name.split('.').pop() : null) || null,
+        sort: index + 1 // 按上传顺序排序，确保多文件时sort值递增
+      })))
+    }

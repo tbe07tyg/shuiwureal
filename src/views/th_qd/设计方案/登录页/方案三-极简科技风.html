@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>极简科技风登录页</title>
+  <style>
+    body {
+      background: #eaf0fa;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    }
+    .login-card {
+      width: 380px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(35,79,162,0.13);
+      padding: 48px 36px 32px 36px;
+      text-align: center;
+      position: relative;
+    }
+    .login-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #234fa2;
+      margin-bottom: 36px;
+      letter-spacing: 2px;
+    }
+    .login-tabs {
+      display: flex; justify-content: center; margin-bottom: 28px; border-bottom: 2px solid #e6eaf2;
+    }
+    .login-tab {
+      font-size: 17px; font-weight: 700; color: #234fa2;
+      padding: 0 28px 10px 28px; cursor: pointer; border-bottom: 3px solid transparent; transition: border 0.2s;
+    }
+    .login-tab.active { border-bottom: 3px solid #234fa2; color: #234fa2; }
+    .login-form input {
+      width: 100%; height: 42px; margin-bottom: 20px;
+      border: 1.5px solid #e6eaf2; border-radius: 8px;
+      font-size: 15px; padding: 0 12px;
+    }
+    .login-form button {
+      width: 100%; height: 42px; background: #234fa2; color: #fff;
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 1px;
+      margin-top: 8px;
+      box-shadow: 0 2px 8px rgba(35,79,162,0.08);
+    }
+    .login-form button:hover { background: #1a3877; }
+  </style>
+  <script>
+    function switchTab(tab) {
+      document.getElementById('tab-account').classList.remove('active');
+      document.getElementById('tab-mobile').classList.remove('active');
+      document.getElementById('form-account').style.display = 'none';
+      document.getElementById('form-mobile').style.display = 'none';
+      if(tab === 'account') {
+        document.getElementById('tab-account').classList.add('active');
+        document.getElementById('form-account').style.display = 'block';
+      } else {
+        document.getElementById('tab-mobile').classList.add('active');
+        document.getElementById('form-mobile').style.display = 'block';
+      }
+    }
+    window.onload = function() { switchTab('account'); }
+  </script>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-title">国企科研管理系统</div>
+    <div class="login-tabs">
+      <div id="tab-account" class="login-tab active" onclick="switchTab('account')">账号登录</div>
+      <div id="tab-mobile" class="login-tab" onclick="switchTab('mobile')">手机验证码登录</div>
+    </div>
+    <div class="login-form" id="form-account">
+      <input type="text" placeholder="请输入用户名">
+      <input type="password" placeholder="请输入密码">
+      <button>登录</button>
+    </div>
+    <div class="login-form" id="form-mobile" style="display:none;">
+      <input type="text" placeholder="请输入手机号">
+      <div style="display:flex;gap:8px;">
+        <input type="text" placeholder="请输入验证码" style="flex:1;">
+        <button style="width:120px;">获取验证码</button>
+      </div>
+      <button style="margin-top:16px;">登录</button>
+    </div>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,6 @@
+              <a-button
+                size="small"
+                @click="handleViewDetails(record)"
+              >
+                查看详情
+              </a-button>

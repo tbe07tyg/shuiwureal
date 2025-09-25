@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+.cache-loader/
+coverage/
+.tmp/
+
+# Package managers
+.yarn/
+.pnp*
+
+# Env files (add selectively if needed)
+.env.local
+.env.*.local
+
+# Misc large/binary
+*.zip
+*.rar
+*.7z
+yudao.7z
+.image/
+node_modules
+.DS_Store
+dist
+dist-ssr
+/dist*
+pnpm-debug
+auto-*.d.ts
+.idea
+.history

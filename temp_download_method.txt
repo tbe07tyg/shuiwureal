@@ -1,0 +1,24 @@
+  // 结论文件下载方法
+  const downloadConclusionFile = (file) => {
+    // 处理不同格式的文件信息
+    const fileUrl = file.fileUrl || file.url
+    const fileName = file.name || file.materialName || '未命名文件'
+    const fileSuffix = file.fileSuffix || file.type
+
+    if (!fileUrl) {
+      message.warning('暂无文件可下载')
+      return
+    }
+
+    const link = document.createElement('a')
+    link.href = fileUrl
+    link.download = `${fileName}${fileSuffix ? '.' + fileSuffix : ''}`
+    link.target = '_blank'
+
+    // 触发下载
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    message.success(`开始下载: ${fileName}`)
+  }
