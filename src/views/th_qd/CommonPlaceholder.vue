@@ -2,7 +2,7 @@
   <div class="placeholder-page">
     <div class="placeholder-content">
       <div class="placeholder-icon">
-        <ConstructionOutlined />
+        <ToolOutlined />
       </div>
       <h2>{{ pageTitle }}</h2>
       <p>此页面正在开发中，敬请期待...</p>
@@ -21,7 +21,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ConstructionOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue'
+import { ToolOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
