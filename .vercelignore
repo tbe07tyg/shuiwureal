@@ -8,7 +8,6 @@ coverage
 .cache
 .cache-loader
 dist
-build
 .yarn
 pnpm-lock.yaml
 *.7z
