@@ -41,6 +41,8 @@ import '@/plugins/tongji' // 百度统计
 import Logger from '@/utils/Logger'
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
+// Element Plus 全量样式（解决生产环境组件样式缺失，如侧边栏菜单）
+import 'element-plus/dist/index.css'
 
 import VueDOMPurifyHTML from 'vue-dompurify-html' // 解决v-html 的安全隐患
 
