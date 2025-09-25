@@ -17,13 +17,14 @@ import UnoCSS from 'unocss/vite'
 
 export function createVitePlugins() {
   const root = process.cwd()
+  const isProd = process.env.NODE_ENV === 'production'
 
   // 路径查找
   function pathResolve(dir: string) {
     return resolve(root, '.', dir)
   }
 
-  return [
+  const plugins: any[] = [
     Vue(),
     VueJsx(),
     UnoCSS(),
@@ -64,10 +65,6 @@ export function createVitePlugins() {
       resolvers: [ElementPlusResolver()],
       globs: ["src/components/**/**.{vue, md}", '!src/components/DiyEditor/components/mobile/**']
     }),
-    EslintPlugin({
-      cache: false,
-      include: ['src/**/*.vue', 'src/**/*.ts', 'src/**/*.tsx'] // 检查的文件
-    }),
     VueI18nPlugin({
       runtimeOnly: true,
       compositionOnly: true,
@@ -94,4 +91,15 @@ export function createVitePlugins() {
       promiseImportName: (i) => `__tla_${i}`
     })
   ]
+
+  if (!isProd) {
+    plugins.push(
+      EslintPlugin({
+        cache: false,
+        include: ['src/**/*.vue', 'src/**/*.ts', 'src/**/*.tsx'] // 检查的文件
+      })
+    )
+  }
+
+  return plugins
 }
