@@ -343,7 +343,7 @@ function handleExport() {
 }
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .requirement-detail {
   padding: 0;
 }
