@@ -888,7 +888,7 @@ const remainingRouter: AppRouteRecordRaw[] = [
     path: '/',
     component: Layout,
     name: 'ThQd',
-    redirect: '/index',
+    // redirect: '/index',
     meta: {
       hidden: true,
       title: 'TH项目管理',
@@ -901,11 +901,20 @@ const remainingRouter: AppRouteRecordRaw[] = [
         name: 'ThQdDashboard',
         component: () => import('@/views/th_qd/dashboard/index.vue'),
         meta: {
-          title: '工作台',
+          title: '管理工作台',
           icon: 'ep:monitor'
         }
-        
+      },
+      {
+        path: 'UserManagement',
+        name: 'ThQdUserManagement',
+        component: () => import('@/views/th_qd/dashboard/user.vue'),
+        meta: {
+          title: '用户管理',
+          icon: 'ep:monitor'
+        }
       }
+      
     ]
   },
   
@@ -1192,11 +1201,35 @@ const remainingRouter: AppRouteRecordRaw[] = [
           {
             path: 'payment',
             name: 'ThQdImplementationPayment',
-            component: () => import('@/views/th_qd/implementation/payment/index.vue'),
+            // component: () => import('@/views/th_qd/implementation/payment/index.vue'),
             meta: {
               title: '经费执行进度',
               icon: 'ep:money'
-            }
+            },
+              children: [
+              {
+                path: 'budgetreporter',
+                name: 'ThQdImplementationPaymentBudgetReporter',
+                component: () => import('@/views/th_qd/implementation/payment/BudgetReporter.vue'),
+                meta: {
+                  title: '填报人员',
+                  icon: 'ep:money',
+                  hidden: true
+                }
+              },
+              {
+                path: 'budgetmanager',
+                name: 'ThQdImplementationPaymentBudgetManager',
+                component: () => import('@/views/th_qd/implementation/payment/BudgetManager.vue'),
+                meta: {
+                  title: '审核人员',
+                  icon: 'ep:money',
+                  hidden: true
+                }
+              },
+      
+            ]
+
           },
           
         ]
