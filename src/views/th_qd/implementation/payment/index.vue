@@ -51,26 +51,28 @@ const userPermissions = ref({})
 
 // 模拟用户权限检测
 const checkUserRole = async () => {
-  try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // 模拟用户权限数据 - 简化逻辑，默认给填报权限
-    userPermissions.value = {
-      roles: ['reporter'], // 默认只有填报权限
-      defaultRole: 'reporter' // 默认角色
-    }
-    
-    loading.value = false
-    
-    // 直接进入填报页面
-    userRole.value = 'reporter'
-    
-    console.log('✅ 用户角色检测完成，进入填报页面')
-  } catch (error) {
-    console.error('❌ 用户角色检测失败:', error)
-    loading.value = false
-    userRole.value = 'reporter' // 出错时默认给填报权限
+  // 模拟API调用
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  
+  // 模拟用户权限数据
+  userPermissions.value = {
+    roles: ['reporter', 'manager'], // 用户拥有的角色
+    defaultRole: 'reporter' // 默认角色
+  }
+  
+  loading.value = false
+  
+  // 如果用户只有一个角色，直接进入
+  if (userPermissions.value.roles.length === 1) {
+    userRole.value = userPermissions.value.roles[0]
+  } 
+  // 如果用户有多个角色，显示选择器
+  else if (userPermissions.value.roles.length > 1) {
+    showRoleSelector.value = true
+  }
+  // 如果用户没有权限，显示无权限提示
+  else {
+    userRole.value = 'no-permission'
   }
 }
 
