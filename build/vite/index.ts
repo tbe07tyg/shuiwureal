@@ -6,6 +6,7 @@ import EslintPlugin from 'vite-plugin-eslint'
 import PurgeIcons from 'vite-plugin-purge-icons'
 import { ViteEjsPlugin } from 'vite-plugin-ejs'
 // @ts-ignore
+import ElementPlus from 'unplugin-element-plus/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
@@ -15,9 +16,9 @@ import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons-ng'
 import UnoCSS from 'unocss/vite'
 
-export function createVitePlugins() {
+export function createVitePlugins(command: string) {
   const root = process.cwd()
-  const isProd = process.env.NODE_ENV === 'production'
+  const isBuild = command === 'build'
 
   // 路径查找
   function pathResolve(dir: string) {
@@ -30,6 +31,7 @@ export function createVitePlugins() {
     UnoCSS(),
     progress(),
     PurgeIcons(),
+    ElementPlus({}),
     AutoImport({
       include: [
         /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
@@ -92,7 +94,7 @@ export function createVitePlugins() {
     })
   ]
 
-  if (!isProd) {
+  if (!isBuild) {
     plugins.push(
       EslintPlugin({
         cache: false,
@@ -101,5 +103,5 @@ export function createVitePlugins() {
     )
   }
 
-  return plugins
+  return plugins.filter(Boolean)
 }
