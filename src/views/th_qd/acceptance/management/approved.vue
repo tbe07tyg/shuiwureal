@@ -28,7 +28,7 @@
 import { ref, computed } from 'vue'
 import { AuditOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { useApprovalStore } from '@/stores/modules/th_qd/approval'
+import { useApprovalStore } from '@/store/modules/th_qd/approval'
 import { ContentWrap } from '@/components/ContentWrap'
 
 const approvalStore = useApprovalStore()

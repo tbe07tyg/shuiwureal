@@ -722,9 +722,9 @@ const handleSubmit = async (values) => {
         const materialData = {
           projectId: route.query.projectId ? parseInt(route.query.projectId) : values.projectId,
           materialType: 2,
-          materialName: file.name || config.categoryName ,
-          fileUrl: file.url,
-          fileSize: file.fileSize || 0,
+          materialName: file.name || file.fileName || config.categoryName ,
+          fileUrl: file.fileUrl || file.url,
+          fileSize: file.fileSize || file.size || 0,
           fileSuffix: getFileExtension(file.name || file.fileName),
           isRequired: config.isRequired ? 1 : 0,
           reviewStatus: 0, // 待处理

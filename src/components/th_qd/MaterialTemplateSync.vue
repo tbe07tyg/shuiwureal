@@ -85,6 +85,18 @@
               </a-button>
             </a-upload>
 
+            <!-- 新增：在线填报按钮 -->
+            <!-- <a-button 
+              v-if="shouldShowOnlineFill(config)"
+              type="dashed" 
+              :size="config.isRequired ? 'default' : 'small'"
+              @click="openOnlineFillForm(config)"
+              class="online-fill-btn"
+            >
+              <EditOutlined />
+              在线填报
+            </a-button> -->
+
             <!-- 已上传文件显示 -->
             <div class="uploaded-file" v-if="getUploadedFile(config.id)">
               <div class="file-info">
@@ -131,26 +143,39 @@
         />
       </div>
     </div>
+
+    <!-- 在线填报弹窗 -->
+    <OnlineApplicationForm
+      v-if="currentOnlineFillConfig"
+      v-model:visible="onlineFillVisible"
+      :config-id="currentOnlineFillConfig.id"
+      :template-data="currentOnlineFillConfig"
+      :project-context="getProjectContext()"
+      @success="handleOnlineFillSuccess"
+      @cancel="handleOnlineFillCancel"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { message, Empty } from 'ant-design-vue'
-import { 
+import {
   FileTextOutlined, 
   ReloadOutlined, 
   InfoCircleOutlined,
   DownloadOutlined,
   UploadOutlined,
   FileOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  EditOutlined
 } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
 import { useMaterialTemplateStore } from '@/store/modules/th_qd/materialTemplate'
 import FileUploadService from '@/services/fileUploadService'
 import { uploadTechnologicalFile } from '@/api/upload'
 import { deleteTechnologicalProjectMaterial, updateTechnologicalProjectMaterial } from '@/api/th_qd/approval'
+import OnlineApplicationForm from './OnlineApplicationForm.vue'
 
 /**
  * 组件属性
@@ -171,6 +196,11 @@ const props = defineProps({
   showActions: {
     type: Boolean,
     default: true
+  },
+  // 项目数据（用于在线填报自动填充）
+  projectData: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -197,6 +227,10 @@ const materialConfigs = ref([])
 const uploadedFiles = ref(new Map()) // 存储已上传的文件 
 // 待预加载的历史材料（在配置加载完成后应用）
 const pendingPreloadFiles = ref(null)
+
+// 在线填报相关状态
+const onlineFillVisible = ref(false)
+const currentOnlineFillConfig = ref(null)
 
 // 获取业务类型映射
 const { businessTypeMap } = materialTemplateStore
@@ -440,6 +474,93 @@ const downloadTemplate = (config) => {
  */
 const goToConfigPage = () => {
   router.push('/settings/material-template')
+}
+
+/**
+ * 检查是否应该显示在线填报按钮
+ */
+const shouldShowOnlineFill = (config) => {
+  if (!config) return false
+  
+  // 检查是否有模板文件 - 只要有模板文件就支持在线填报
+  const hasTemplateFile = config.templateFilePath && config.templateFilePath.trim()
+  
+  return hasTemplateFile
+}
+
+/**
+ * 打开在线填报表单
+ */
+const openOnlineFillForm = (config) => {
+  currentOnlineFillConfig.value = config
+  onlineFillVisible.value = true
+}
+
+/**
+ * 处理在线填报成功
+ */
+const handleOnlineFillSuccess = (data) => {
+  const { configId, file } = data
+  
+  // 构建文件信息
+  const fileWithUrl = {
+    ...file,
+    uploaded: true,
+    uploadTime: new Date().toISOString()
+  }
+  
+  // 保存到已上传文件列表
+  uploadedFiles.value.set(configId, fileWithUrl)
+  
+  // 触发文件变化事件
+  emit('files-change', {
+    configId: configId,
+    file: fileWithUrl,
+    action: 'uploaded',
+    url: file.fileUrl,
+    uploadResponse: file.uploadResponse
+  })
+  
+  // 触发验证状态变化事件
+  emit('validation-change', {
+    allRequiredUploaded: allRequiredUploaded.value,
+    uploadedCount: uploadedFiles.value.size,
+    totalCount: materialConfigs.value.length
+  })
+  
+  // 关闭在线填报弹窗
+  onlineFillVisible.value = false
+  currentOnlineFillConfig.value = null
+  
+  message.success(`在线填报完成，文件已上传`)
+}
+
+/**
+ * 处理在线填报取消
+ */
+const handleOnlineFillCancel = () => {
+  onlineFillVisible.value = false
+  currentOnlineFillConfig.value = null
+}
+
+/**
+ * 获取项目上下文信息（用于在线填报自动填充）
+ */
+const getProjectContext = () => {
+  // 从父组件传递的表单数据中提取项目信息
+  const data = props.projectData || {}
+  
+  return {
+    projectName: data.projectName || '',
+    applicant: data.applicant || '',
+    department: data.department || '',
+    year: data.year || new Date().getFullYear(),
+    budget: data.budget || 0,
+    duration: data.duration || 12,
+    expectedDate: data.expectedDate ? (data.expectedDate.format ? data.expectedDate.format('YYYY-MM-DD') : data.expectedDate) : '',
+    description: data.description || '',
+    remarks: data.remarks || ''
+  }
 }
 
 /**
@@ -762,6 +883,23 @@ function applyPreloadFiles(files) {
   min-width: 120px;
 }
 
+.online-fill-btn {
+  margin-top: 8px;
+  border-style: dashed;
+  border-color: #40a9ff;
+  color: #40a9ff;
+  background: #f6ffed;
+  transition: all 0.3s ease;
+}
+
+.online-fill-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  background: #e6f7ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+}
+
 .uploaded-file {
   width: 100%;
 }
@@ -820,6 +958,23 @@ function applyPreloadFiles(files) {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #f0f0f0;
+}
+
+/* 在线填报按钮样式 */
+.online-fill-btn {
+  margin-top: 8px;
+  border-style: dashed;
+  border-color: #40a9ff;
+  color: #40a9ff;
+  background: #f6ffed;
+  transition: all 0.3s ease;
+}
+
+.online-fill-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  background: #e6f7ff;
+  transform: translateY(-1px);
 }
 
 /* 响应式设计 */

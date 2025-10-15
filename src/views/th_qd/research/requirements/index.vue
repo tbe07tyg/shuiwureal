@@ -147,9 +147,9 @@
               <a-button type="link" size="small" @click="editRequirement(record)">
                 编辑
               </a-button>
-              <a-button type="link" size="small" @click="startResearch(record)">
+              <!-- <a-button type="link" size="small" @click="startResearch(record)">
                 开始调研
-              </a-button>
+              </a-button> -->
               <a-dropdown>
                 <template #overlay>
                   <a-menu>

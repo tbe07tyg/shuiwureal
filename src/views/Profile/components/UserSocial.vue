@@ -1,6 +1,6 @@
 <template>
   <el-table :data="socialUsers" :show-header="false">
-    <!-- <el-table-column fixed="left" title="序号" type="seq" width="60" />
+    <el-table-column fixed="left" title="序号" type="seq" width="60" />
     <el-table-column align="left" label="社交平台" width="120">
       <template #default="{ row }">
         <img :src="row.img" alt="" class="h-5 align-middle" />
@@ -18,7 +18,7 @@
           <XTextButton class="mr-5" title="(绑定)" type="primary" @click="bind(row)" />
         </template>
       </template>
-    </el-table-column> -->
+    </el-table-column>
   </el-table>
 </template>
 <script lang="ts" setup>

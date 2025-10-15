@@ -228,10 +228,12 @@ const historyFilter = ref('all')
 
 // 计算属性
 const filteredSubmissions = computed(() => {
+  // 创建副本以避免直接修改props
+  const submissionsCopy = [...props.submissions]
   if (historyFilter.value === 'all') {
-    return props.submissions.sort((a, b) => new Date(b.submittedTime) - new Date(a.submittedTime))
+    return submissionsCopy.sort((a, b) => new Date(b.submittedTime) - new Date(a.submittedTime))
   }
-  return props.submissions
+  return submissionsCopy
     .filter(submission => submission.status === historyFilter.value)
     .sort((a, b) => new Date(b.submittedTime) - new Date(a.submittedTime))
 })

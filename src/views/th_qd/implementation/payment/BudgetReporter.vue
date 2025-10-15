@@ -39,8 +39,9 @@
     <a-card v-if="currentProject" class="project-info-card">
       <div class="project-info">
         <div class="info-item">
-          <span class="label">项目名称：</span>
-          <a-select 
+          <span class="label" >项目名称:</span>
+          <span class="value" >{{ currentProject.name }}</span>
+          <!-- <a-select 
             v-model:value="selectedProject" 
             style="width: 200px;"
             @change="handleProjectChange"
@@ -49,7 +50,7 @@
             <a-select-option v-for="project in projects" :key="project.id" :value="project.id">
               {{ project.name }}
             </a-select-option>
-          </a-select>
+          </a-select> -->
         </div>
         <div class="info-item">
           <span class="label">预算总额：</span>
@@ -114,9 +115,9 @@
                 <a-button type="primary" @click="showAddModal">
                   <PlusOutlined /> 手动填报
                 </a-button>
-                <a-button type="default" @click="showSmartModal" style="border-color: #52c41a; color: #52c41a;">
+                <!-- <a-button type="default" @click="showSmartModal" style="border-color: #52c41a; color: #52c41a;">
                   <ScanOutlined /> 智能凭证填报
-                </a-button>
+                </a-button> -->
               </a-space>
             </div>
             
@@ -576,6 +577,7 @@ const loadProjectData = async () => {
     const response = await fetchProjects({
       pageNo: 1,
       pageSize: 100,
+      applicant: userStore.getUser.nickname,
       status: 8 // 8=立项通过
     })
     console.log('📊 项目列表API响应:', response)

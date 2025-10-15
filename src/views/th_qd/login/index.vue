@@ -219,8 +219,8 @@ const tenantEnable = import.meta.env.VITE_APP_TENANT_ENABLE !== 'false'
 
 // 登录表单
 const loginForm = reactive({
-  username: 'admin',
-  password: 'admin123',
+  username: '',
+  password: '',
   rememberMe: false,
   tenantName: import.meta.env.VITE_APP_DEFAULT_LOGIN_TENANT || ''
 })

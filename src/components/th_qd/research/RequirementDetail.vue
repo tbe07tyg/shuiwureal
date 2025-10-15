@@ -134,7 +134,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { message } from 'ant-design-vue'
 import {
   FileTextOutlined,
@@ -487,8 +487,6 @@ function handleExport() {
  * 响应式设计
  */
 @media (max-width: 768px) {
-
-  
   .timeline-header {
     flex-direction: column;
     align-items: flex-start;
@@ -500,4 +498,4 @@ function handleExport() {
     align-items: flex-start;
   }
 }
-</style> 
+</style>

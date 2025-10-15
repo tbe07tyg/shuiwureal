@@ -199,6 +199,32 @@
           </template>
           <template v-else-if="column.key === 'actions'">
             <a-space>
+              <!-- 当状态为在线填报中时显示编辑按钮 -->
+              <a-button
+                v-if="record.status === 'draft'"
+                type="primary"
+                size="small"
+                @click="handleEditApplication(record)"
+              >
+                编辑申报书
+              </a-button>
+              <a-button
+                v-if="record.status === 'draft'"
+                type="primary"
+                size="small"
+                @click="handleEditBudget(record)"
+              >
+                编辑经费表
+              </a-button>
+               <a-button 
+                v-if="record.status === 'draft'" 
+                type="primary" 
+                size="small" 
+                @click="handleResubmitMaterial(record)"
+              >
+                提交材料
+              </a-button>
+
               <!-- 当状态为审核中时显示取消申请按钮 -->
               <a-button
                 v-if="record.status === 'material_reviewing'"
@@ -685,6 +711,7 @@ const getStatusColor = (status) => {
  */
 const getStatusText = (status) => {
   const textMap = {
+    draft: '申请中',
     material_reviewing: '材料审核中',
     meeting_preparing: '会议待组织',
     meeting_scheduled: '会议已安排',
@@ -755,7 +782,61 @@ const getProgressText = (status, record = null) => {
 
 // 事件处理方法
 const goToSubmit = () => {
-  router.push('/th-qd-project/approval/applicant/submit')
+  router.push('/th-qd-project/approval/approval/applicant/submit')
+}
+
+/**
+ * 编辑申报书
+ * @param {Object} record 申请记录
+ */
+const handleEditApplication = (record) => {
+  router.push({
+    path: '/th-qd-project/approval/approval/applicant/online-form-new',
+    query: {
+      // tab: 'submit',
+      // edit: 'true',
+      projectId: record.id,
+      // projectNo: record.projectNo || record.projectCode,
+      // projectName: encodeURIComponent(record.projectName || ''),
+      // projectCode: record.projectCode || '',
+      // year: record.yearly || '2024',
+      // applicant: encodeURIComponent(record.applicant || ''),
+      // department: encodeURIComponent(record.applicantUnit || ''),
+      // duration: record.projectCycle || '',
+      // budget: record.budget || '',
+      // expectedDate: record.createTime || record.expectedTime || '',
+      // description: encodeURIComponent(record.applicationDescription || ''),
+      // remarks: encodeURIComponent(record.remarks || ''),
+      // status: record.status || ''
+    }
+  })
+}
+
+/**
+ * 编辑经费表
+ * @param {Object} record 申请记录
+ */
+const handleEditBudget = (record) => {
+  router.push({
+    path: '/th-qd-project/approval/online-budget',
+    query: {
+      // tab: 'budget',
+      // edit: 'true',
+      projectId: record.id,
+      // projectNo: record.projectNo || record.projectCode,
+      projectName: encodeURIComponent(record.projectName || ''),
+      // projectCode: record.projectCode || '',
+      // year: record.yearly || '2024',
+      // applicant: encodeURIComponent(record.applicant || ''),
+      // department: encodeURIComponent(record.applicantUnit || ''),
+      // duration: record.projectCycle || '',
+      // budget: record.budget || '',
+      // expectedDate: record.createTime || record.expectedTime || '',
+      // description: encodeURIComponent(record.applicationDescription || ''),
+      // remarks: encodeURIComponent(record.remarks || ''),
+      // status: record.status || ''
+    }
+  })
 }
 
 /**
@@ -780,7 +861,7 @@ const handleResubmit = (record) => {
   // message.info(`重新提交申请：${record.projectName}`)
 
   router.push({
-    path: '/th-qd-project/approval/applicant/submit',
+    path: '/th-qd-project/approval/approval/applicant/submit',
     query: {
       tab:'submit',
       resubmit: 'true',
@@ -790,7 +871,7 @@ const handleResubmit = (record) => {
 
   // 跳转到提交页面，并传递项目信息用于自动填充
   router.push({
-    path: '/th-qd-project/approval/applicant/submit',
+    path: '/th-qd-project/approval/approval/applicant/submit',
     query: {
       tab:'submit',
       resubmit: 'true',
@@ -892,7 +973,7 @@ const handleResubmitMaterial = (record) => {
   const materialsPayload = record.materials ? encodeURIComponent(JSON.stringify(record.materials)) : ''
   console.log(record.materials)
   router.push({
-    path: '/th-qd-project/approval/applicant/submit',
+    path: '/th-qd-project/approval/approval/applicant/submit',
     query: {
       tab:'submit',
       resubmit: 'true',
@@ -975,7 +1056,7 @@ const handleSubmitImprovement = (record) => {
   // }
   // 跳转到提交页面，并传递项目信息用于自动填充
   router.push({
-    path: '/th-qd-project/approval/applicant/submit',
+    path: '/th-qd-project/approval/approval/applicant/submit',
     query: {
       tab:'submit',
       improvement: 'true',

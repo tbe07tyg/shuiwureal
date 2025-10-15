@@ -81,9 +81,9 @@
             <a-input-search v-model:value="taskKeywordRaw" allow-clear placeholder="搜索任务" style="width:280px" />
             <a-button type="dashed" @click="openAddTask">新增任务</a-button>
             <!-- 从后端解析结果读取（仅追加） -->
-            <!-- <a-tooltip placement="top" title="只追加新任务，不覆盖或删除现有任务">
+            <a-tooltip placement="top" title="只追加新任务，不覆盖或删除现有任务">
               <a-button @click="importFromBackendAnalysis">从后端解析结果读取（仅追加）</a-button>
-            </a-tooltip> -->
+            </a-tooltip>
             <a-button @click="openMilestoneMgr">里程碑管理</a-button>
 
           </div>
@@ -93,7 +93,7 @@
           <a-empty v-if="filteredTasks.length === 0" description="当前项目暂无任务" />
           <div v-else class="task-items">
             <div 
-              v-for="task in filteredTasks" 
+              v-for="task in paginatedTasks" 
               :key="task.id" 
               class="task-item" 
               :class="{ 'task-item--assigned': !!assigneeName(task.id) }"
@@ -173,6 +173,20 @@
                   </span>
                 </div>
               </div>
+            </div>
+            
+            <!-- 分页组件 -->
+            <div class="task-pagination" v-if="filteredTasks.length > 0">
+              <a-pagination
+                :current="taskPagination.current"
+                :pageSize="taskPagination.pageSize"
+                :total="taskPagination.total"
+                :pageSizeOptions="['10', '20', '50', '100']"
+                show-size-changer
+                show-quick-jumper
+                @change="handleTaskPageChange"
+                @show-size-change="handleTaskSizeChange"
+              />
             </div>
           </div>
         </div>
@@ -905,6 +919,13 @@ const setFilter = (f) => { activeFilter.value = f }
 const filterMode = ref('all') // all | phase | mile | unassigned
 const filterValue = ref('')
 
+// 分页相关状态
+const taskPagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0
+})
+
 const taskKeywordRaw = ref('')
 const taskKeyword = ref('')
 // 200ms 防抖
@@ -973,6 +994,40 @@ const filteredTasks = computed(() => {
     return bTime.localeCompare(aTime)
   })
 })
+
+// 分页计算属性：获取当前页的任务
+const paginatedTasks = computed(() => {
+  const startIndex = (taskPagination.value.current - 1) * taskPagination.value.pageSize
+  const endIndex = startIndex + taskPagination.value.pageSize
+  return filteredTasks.value.slice(startIndex, endIndex)
+})
+
+// 侦听 filteredTasks 的变化，更新分页总数
+watch(
+  () => filteredTasks.value.length,
+  (newLength) => {
+    taskPagination.value.total = newLength
+    // 如果当前页码超出范围，重置到第一页
+    const maxPage = Math.ceil(newLength / taskPagination.value.pageSize) || 1
+    if (taskPagination.value.current > maxPage) {
+      taskPagination.value.current = 1
+    }
+  }
+)
+
+// 分页变化处理
+const handleTaskPageChange = (page, pageSize) => {
+  taskPagination.value.current = page
+  if (pageSize) {
+    taskPagination.value.pageSize = pageSize
+  }
+}
+
+// 分页大小变化处理
+const handleTaskSizeChange = (current, size) => {
+  taskPagination.value.pageSize = size
+  taskPagination.value.current = 1 // 重置到第一页
+}
 
 // 清理废弃的阶段相关代码已移除
 
@@ -1416,6 +1471,21 @@ const unassignTask = async (taskId) => {
     return
   }
 
+  // 添加确认提示
+  Modal.confirm({
+    title: '确认取消分配',
+    content: `确定要取消任务"${task.name}"的分配吗？`,
+    okText: '确认取消',
+    cancelText: '取消',
+    onOk() {
+      // 用户确认后执行取消分配操作
+      return executeUnassignTask(taskId, task);
+    }
+  });
+}
+
+// 实际执行取消任务分配的函数
+const executeUnassignTask = async (taskId, task) => {
   // 乐观更新：先本地移除分配
   planning.unassignTask(taskId)
 
@@ -1480,10 +1550,25 @@ const unassignTask = async (taskId) => {
 // 右侧人员面板：在任务 chip 上直接取消分配（落库）
 const cancelMemberAssignment = async (memberId, taskId) => {
   if (!taskId) return
-  const prevMemberId = memberId
   const task = (planning.tasks || []).find(t => t.id === taskId)
   if (!task) { message.error('任务不存在'); return }
 
+  // 添加确认提示
+  Modal.confirm({
+    title: '确认取消分配',
+    content: `确定要取消任务"${task.name}"的分配吗？`,
+    okText: '确认取消',
+    cancelText: '取消',
+    onOk() {
+      // 用户确认后执行取消分配操作
+      return executeCancelMemberAssignment(memberId, taskId, task);
+    }
+  });
+}
+
+// 实际执行取消成员分配的函数
+const executeCancelMemberAssignment = async (memberId, taskId, task) => {
+  const prevMemberId = memberId
   // 乐观更新：先本地移除分配
   planning.unassignTask(taskId)
 
@@ -1734,16 +1819,8 @@ const importFromBackendAnalysis = async () => {
 }
 
 const initWithSamples = () => {
-  const tasks = [
-    { id:'T001', name:'铁泥物相组成及物化性质分析', phaseId:'阶段A', estimate:5, priority:'高', primaryMilestoneId:'M001', origin:{type:'verbatim', confidence:0.9} },
-    { id:'T002', name:'溶剂热法改性及效能评价', phaseId:'阶段B', estimate:8, priority:'中', primaryMilestoneId:'M002', origin:{type:'inferred', confidence:0.6} },
-    { id:'T003', name:'Co-Fe/SiO₂物理化学性质分析报告', phaseId:'阶段C', estimate:3, priority:'低', primaryMilestoneId:'M003', origin:{type:'generated'} }
-  ]
-  const milestones = [
-    { id:'M001', name:'里程碑A', plannedDate:'2025-03-31', criteria:['提交阶段A报告'] },
-    { id:'M002', name:'里程碑B', plannedDate:'2025-06-30', criteria:['完成中试评估'] },
-    { id:'M003', name:'里程碑C', plannedDate:'2025-09-30', criteria:['形成最终技术报告'] }
-  ]
+  const tasks = []
+  const milestones = []
   planning.setData({ tasks, milestones, assignments: [], draftPlan: { totalDuration: '9个月', milestones: milestones.map(m => ({ name:m.name, plannedDate:m.plannedDate, criteria:m.criteria })) } })
   message.success('已载入示例数据')
 }
@@ -1854,7 +1931,37 @@ const applyProposal = async () => {
   try {
     proposal.value.loading = true
     const opts = proposal.value.options
+    
+    // 保存新增任务到后端
+    if (opts.applyAdditions && proposal.value.diff.additions.length > 0) {
+      const projectId = Number(currentProjectId.value)
+      if (!projectId) {
+        message.warning('请选择项目后再执行操作')
+        return
+      }
+      
+      try {
+        const templateConfig ="{\"title\":\"默认模板\",\"sections\":[{\"title\":\"发现结论\",\"required\":true},{\"title\":\"详细描述\",\"required\":false},{\"title\":\"发现来源\",\"required\":false},{\"title\":\" 下一步计划\",\"required\":true},{\"title\":\" 遇到的困难\",\"required\":false}],\"requireAttachment\":true,\"templateId\":2}"
+        const createList = proposal.value.diff.additions.map(t => ({ ...t, projectId, templateConfig }))
+        const results = await Promise.allSettled(createList.map(t => createTask(transformTaskToBackend(t))))
+        const successCount = results.filter(r => r.status === 'fulfilled').length
+        
+        if (successCount > 0) {
+          message.success(`已成功保存 ${successCount} 个新任务到数据库`)
+          // 重新从后端加载任务，确保获取到最新数据
+          await loadTasksFromBackend(projectId)
+        } else {
+          message.warning('保存任务到数据库失败')
+        }
+      } catch (err) {
+        console.error('保存任务到数据库失败:', err)
+        message.error('保存任务到数据库失败，但已添加到本地')
+      }
+    }
+    
+    // 应用变更到前端状态
     planning.mergeBaseline(proposal.value.sourceTasks, { ...opts, useNameDedup: true })
+    
     // 里程碑：仅在草稿为空时初始化，避免覆盖
     if (Array.isArray(proposal.value.milestones) && proposal.value.milestones.length > 0) {
       if (!planning.draftPlan?.milestones || planning.draftPlan.milestones.length === 0) {
@@ -1864,6 +1971,7 @@ const applyProposal = async () => {
         }
       }
     }
+    
     message.success('已应用变更：新增/更新/归档按选择生效，您的编辑与分配已保留')
     proposal.value.visible = false
   } catch (err) {
@@ -2327,7 +2435,7 @@ const onDropReorder = (memberId, targetTaskId) => {
 const openAddTask = () => {
   edit.value.visible = true
   edit.value.target = null
-  edit.value.form = { name: '', description: '', primaryMilestoneId: '', priority: undefined, startDate: '', endDate: '', dueDate: '' }
+  edit.value.form = { name: '', description: '', primaryMilestoneId: '', priority: undefined, startDate: '', endDate: '', dueDate: ''}
   // 确保附件列表初始化为空数组
   edit.value.attachFiles = []
   
@@ -3013,9 +3121,13 @@ const loadTasksFromBackend = async (projectId) => {
       }
       // 若依然无任务，则显示顶部说明 banner
       showEmptyBanner.value = true
+      // 允许从后端解析结果导入
+      canAutoImport.value = true
     } else {
       message.success(`已从后端加载 ${frontendTasks.length} 个任务`)
       showEmptyBanner.value = false
+      // 有任务时也允许导入，以便追加新任务
+      canAutoImport.value = true
     }
 
   } catch (error) {
@@ -3416,6 +3528,16 @@ const isAutoCreateDismissed = (pid, ttlMs = 24*60*60*1000) => {
   font-weight: 500;
 }
 
+
+/* 任务分页样式 */
+.task-pagination {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #f0f0f0;
+  background-color: #fafafa;
+  border-radius: 0 0 8px 8px;
+}
 
 .project-info .project-leader {
   color: #595959;

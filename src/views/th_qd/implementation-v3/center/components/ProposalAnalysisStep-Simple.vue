@@ -114,6 +114,33 @@
                     <a-tag v-else color="orange">待加载</a-tag>
                   </a-descriptions-item>
                 </a-descriptions>
+
+                <!-- 文件列表展示 -->
+                <div v-if="availableDocuments.length > 0" class="document-list" style="margin-top: 12px;">
+                  <h4 style="margin-bottom: 8px; font-size: 14px;">项目文档列表 ({{ availableDocuments.length }}个)</h4>
+                  <a-list size="small" :data-source="availableDocuments" style="max-height: 200px; overflow-y: auto;">
+                    <template #renderItem="{ item }">
+                      <a-list-item>
+                        <a-list-item-meta>
+                          <template #title>
+                            <span :style="{ fontWeight: item.id === selectedDocumentId ? 'bold' : 'normal', color: item.id === selectedDocumentId ? '#1890ff' : 'inherit' }">
+                              {{ item.materialName || item.fileName || '未命名文档' }}
+                            </span>
+                          </template>
+                          <template #description>
+                            <span style="font-size: 12px;">
+                              {{ item.fileType || '未知类型' }} · {{ formatFileSize(item.fileSize) }}
+                            </span>
+                          </template>
+                        </a-list-item-meta>
+                        <template #extra>
+                          <a-tag v-if="item.id === selectedDocumentId" color="green">当前使用</a-tag>
+                          <a-button v-else size="small" @click="switchDocument(item)">切换</a-button>
+                        </template>
+                      </a-list-item>
+                    </template>
+                  </a-list>
+                </div>
               </div>
             </div>
             
@@ -1614,28 +1641,38 @@ const handleProjectSelect = async (projectId) => {
     technicalRoute: null,
     implementation: null
   }
+
+  // 🆕 清空上一个项目的文档预览内容
+  documentLoaded.value = false
+  documentContent.value = ''
+  documentHtml.value = ''
+  currentFileName.value = ''
+  currentDocumentUrl.value = ''
+  selectedDocumentId.value = null
+  console.log('🔄 已清空上一个项目的文档预览内容')
   
   // 自动加载项目文档和解析结果
   if (projectId) {
     console.log('🔄 自动加载项目文档:', projectId)
     try {
-      // 加载文档列表
-      await showDocumentSelection()
-      
-      // 🆕 重新加载解析结果
-      console.log('🔄 重新加载项目解析结果...')
-      const hasBackendData = await loadAnalysisFromBackendData()
-      
-      // 如果后端无数据，则尝试恢复本地存储的解析结果
-      // 严格后端模式：不再从本地恢复
-      if (!hasBackendData) {
-        console.log('💡 严格后端模式：后端无数据，不做本地恢复')
+      // 加载文档列表（但不显示弹窗）
+      const documents = await fetchProjectDocuments(projectId)
+      console.log('📋 获取到的文档列表:', documents.length, '个文档')
+
+      // 🆕 无论是否有文档，都更新文件列表
+      availableDocuments.value = documents
+
+      // 🆕 自动设置选中的文档ID为第一个文档
+      if (documents.length > 0) {
+        // 默认选择第一个文档
+        selectedDocumentId.value = documents[0].id
+        console.log('📋 已设置默认选中文档ID为第一个文档:', documents[0].id)
       }
-      
-      // 自动加载最佳文档
-      if (availableDocuments.value.length > 0 && !documentLoaded.value) {
+
+      // 🆕 直接加载最佳文档，不显示选择弹窗
+      if (documents.length > 0 && !documentLoaded.value) {
         console.log('📋 发现可用文档，尝试自动加载最佳文档')
-        const bestDoc = pickBestProposalMaterial(availableDocuments.value)
+        const bestDoc = pickBestProposalMaterial(documents)
         if (bestDoc) {
           try {
             const fileUrl = bestDoc.fileUrl || bestDoc.downloadUrl
@@ -1645,8 +1682,13 @@ const handleProjectSelect = async (projectId) => {
             currentFileName.value = fileName || '申报文档'
             currentDocumentUrl.value = fileUrl || ''
             console.log('✅ 申报书文档自动加载成功 - documentLoaded:', documentLoaded.value)
+
+            // 设置选中的文档ID
+            selectedDocumentId.value = bestDoc.id
+            message.success(`已加载项目 ${projectId} 的最佳文档: ${fileName || '申报文档'}`)
           } catch (error) {
             console.warn('⚠️ 自动加载申报书文档失败:', error)
+            message.error(`加载项目文档失败: ${error.message}`)
           }
         } else {
           console.log('⚠️ 未找到最佳文档，尝试加载默认申报书')
@@ -1657,7 +1699,7 @@ const handleProjectSelect = async (projectId) => {
             console.warn('⚠️ 默认申报书文档加载失败:', error)
           }
         }
-      } else if (availableDocuments.value.length === 0 && !documentLoaded.value) {
+      } else if (documents.length === 0 && !documentLoaded.value) {
         console.log('⚠️ 无可用文档，尝试加载默认申报书')
         try {
           await loadProjectDocument()
@@ -1669,11 +1711,50 @@ const handleProjectSelect = async (projectId) => {
         console.log('✅ 文档已加载，documentLoaded:', documentLoaded.value)
       }
       
+      // 🆕 重新加载解析结果
+      console.log('🔄 重新加载项目解析结果...')
+      const hasBackendData = await loadAnalysisFromBackendData()
+      
+      // 如果后端无数据，则尝试恢复本地存储的解析结果
+      // 严格后端模式：不再从本地恢复
+      if (!hasBackendData) {
+        console.log('💡 严格后端模式：后端无数据，不做本地恢复')
+      }
+      
+
+      
       message.success(`已切换到项目：${projectId}`)
     } catch (error) {
       console.error('自动加载项目失败:', error)
       message.error('加载项目失败，请检查项目是否正确')
     }
+  }
+}
+
+/**
+ * 切换文档
+ */
+const switchDocument = async (document) => {
+  try {
+    console.log('🔄 切换文档:', document)
+
+    // 使用选中文档的下载地址加载文档
+    const fileUrl = document.fileUrl || document.downloadUrl
+    const fileName = document.materialName || document.fileName
+
+    if (!fileUrl) {
+      throw new Error('文档URL为空，无法加载文档')
+    }
+
+    await loadAndPreviewWord(fileUrl)
+    currentFileName.value = fileName || '申报文档'
+    currentDocumentUrl.value = fileUrl || ''
+    selectedDocumentId.value = document.id
+
+    message.success(`已切换到文档: ${fileName || '申报文档'}`)
+  } catch (error) {
+    console.error('切换文档失败:', error)
+    message.error('切换文档失败，请重试')
   }
 }
 
@@ -2139,7 +2220,7 @@ const generateAnalysisPrompt = (analysisType, sourceContent = null) => {
   }
   
   const prompts = {
-    basicInfo: `请从以下项目申报书中提取基本信息，返回JSON格式：
+    basicInfo: `请从以下项目申报书以及相关图片中提取基本信息，返回JSON格式：
 
 【分析要求】
 请仔细阅读申报书内容，提取以下基本信息：
@@ -2178,7 +2259,7 @@ const generateAnalysisPrompt = (analysisType, sourceContent = null) => {
 【申报书内容】
 ${content}`,
 
-    technicalRoute: `请从以下项目申报书中梳理技术路线，返回JSON格式：
+    technicalRoute: `请从以下项目申报书以及相关图片中梳理技术路线，返回JSON格式：
 
 【分析要求】
 请分析申报书中的技术实施方案，提取按阶段的技术路线信息：
@@ -2209,7 +2290,7 @@ ${content}`,
 【申报书内容】
 ${content}`,
 
-    implementation: `请从以下项目申报书中分析实施方案，返回JSON格式：
+    implementation: `请从以下项目申报书中以及相关图片中分析实施方案，返回JSON格式：
 
 【分析要求】
 请分析项目的实施计划、时间安排和资源配置：
@@ -3169,7 +3250,32 @@ onMounted(async () => {
     // 优先尝试显示文档选择弹窗
     if (projectId.value) {
       console.log('📋 检测到项目ID，尝试获取项目申报文档列表...', projectId.value)
-      await showDocumentSelection()
+      // 获取文档列表但不显示弹窗
+      const documents = await fetchProjectDocuments(projectId.value)
+      console.log('📋 获取到的文档列表:', documents.length, '个文档')
+
+      // 设置文档列表以在界面上显示
+      availableDocuments.value = documents
+
+      // 如果有文档，自动选择最佳文档
+      if (documents.length > 0 && !documentLoaded.value) {
+        console.log('📋 发现可用文档，尝试自动加载最佳文档')
+        const bestDoc = pickBestProposalMaterial(documents)
+        if (bestDoc) {
+          try {
+            const fileUrl = bestDoc.fileUrl || bestDoc.downloadUrl
+            const fileName = bestDoc.materialName || bestDoc.fileName
+            console.log('🔍 自动加载最佳文档:', fileName)
+            await loadAndPreviewWord(fileUrl)
+            currentFileName.value = fileName || '申报文档'
+            currentDocumentUrl.value = fileUrl || ''
+            selectedDocumentId.value = bestDoc.id
+            console.log('✅ 申报书文档自动加载成功 - documentLoaded:', documentLoaded.value)
+          } catch (error) {
+            console.warn('⚠️ 自动加载申报书文档失败:', error)
+          }
+        }
+      }
       
       // 🆕 优先从后端加载解析结果
       console.log('🔍 [调试] 开始调用loadAnalysisFromBackendData，projectId:', projectId.value)

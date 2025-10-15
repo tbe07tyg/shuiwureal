@@ -215,9 +215,9 @@ const knowledgeFilter = ref('all')
 // 计算属性
 const filteredKnowledgeBase = computed(() => {
   if (knowledgeFilter.value === 'all') {
-    return props.knowledgeBase.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
+    return [...props.knowledgeBase].sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
   }
-  return props.knowledgeBase
+  return [...props.knowledgeBase]
     .filter(item => item.type === knowledgeFilter.value)
     .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
 })

@@ -182,9 +182,9 @@ const selectedCategory = ref('all')
 // 计算属性
 const filteredDiscoveries = computed(() => {
   if (selectedCategory.value === 'all') {
-    return props.discoveries.sort((a, b) => new Date(b.discoveredTime) - new Date(a.discoveredTime))
+    return [...props.discoveries].sort((a, b) => new Date(b.discoveredTime) - new Date(a.discoveredTime))
   }
-  return props.discoveries
+  return [...props.discoveries]
     .filter(discovery => discovery.category === selectedCategory.value)
     .sort((a, b) => new Date(b.discoveredTime) - new Date(a.discoveredTime))
 })

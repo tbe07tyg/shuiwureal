@@ -12,7 +12,7 @@ import * as ConfigApi from '@/api/infra/config'
 defineOptions({ name: 'InfraDruid' })
 
 const loading = ref(true) // 是否加载中
-const url = ref(import.meta.env.VITE_BASE_URL + '/druid/index.html')
+const url = ref('https://bd112867579w.vicp.fun/druid/index.html')
 
 /** 初始化 */
 onMounted(async () => {

@@ -53,37 +53,37 @@
 
         <div class="messages-list">
           <div 
-            v-for="message in recentMessages" 
-            :key="message.id"
+            v-for="msg in recentMessages" 
+            :key="msg.id"
             class="message-item"
-            :class="getMessageStatusClass(message.status)"
-            @click="handleViewMessage(message)"
+            :class="getMessageStatusClass(msg.status)"
+            @click="handleViewMessage(msg)"
           >
             <div class="message-header">
               <div class="message-info">
-                <div class="message-from">{{ message.from }}</div>
+                <div class="message-from">{{ msg.from }}</div>
                 <div class="message-type">
-                  <a-tag :color="getMessageTypeColor(message.type)" size="small">
-                    {{ getMessageTypeText(message.type) }}
+                  <a-tag :color="getMessageTypeColor(msg.type)" size="small">
+                    {{ getMessageTypeText(msg.type) }}
                   </a-tag>
                 </div>
               </div>
-              <div class="message-time">{{ formatTime(message.time) }}</div>
+              <div class="message-time">{{ formatTime(msg.time) }}</div>
             </div>
 
-            <div class="message-title">{{ message.title }}</div>
-            <div class="message-content">{{ message.content }}</div>
+            <div class="message-title">{{ msg.title }}</div>
+            <div class="message-content">{{ msg.content }}</div>
 
             <div class="message-actions">
-              <a-button size="small" type="text" @click.stop="handleReplyMessage(message)">
+              <a-button size="small" type="text" @click.stop="handleReplyMessage(msg)">
                 <MessageOutlined />
                 回复
               </a-button>
               <a-button 
-                v-if="message.status === 'unread'"
+                v-if="msg.status === 'unread'"
                 size="small" 
                 type="text" 
-                @click.stop="handleMarkRead(message)"
+                @click.stop="handleMarkRead(msg)"
               >
                 <CheckOutlined />
                 标记已读
@@ -166,7 +166,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['send-message', 'request-help'])
+const emit = defineEmits(['send-message', 'request-help', 'mark-read'])
 
 // 计算属性
 const unreadCount = computed(() => {
@@ -174,7 +174,9 @@ const unreadCount = computed(() => {
 })
 
 const recentMessages = computed(() => {
-  return props.messages
+  // 创建数组副本，避免直接修改props
+  const messagesCopy = [...props.messages]
+  return messagesCopy
     .sort((a, b) => new Date(b.time) - new Date(a.time))
     .slice(0, 5)
 })
@@ -201,7 +203,8 @@ const handleReplyMessage = (msg) => {
 }
 
 const handleMarkRead = (msg) => {
-  msg.status = 'read'
+  // 创建事件通知父组件更新消息状态
+  emit('mark-read', msg.id)
   message.success('已标记为已读')
 }
 

@@ -15,6 +15,14 @@
         <p class="page-description">{{ pageDescription }}</p>
       </div>
       <div class="header-actions">
+        <!-- <a-button type="dashed" @click="openNewOnlineForm" style="margin-right: 8px;">
+          <ExperimentOutlined />
+          体验新版在线填报
+        </a-button>
+        <a-button type="dashed" @click="openBudgetOnline" style="margin-right: 8px;">
+          <MoneyCollectOutlined />
+          体验经费预算在线填报
+        </a-button> -->
         <a-button @click="goBack">
           <ArrowLeftOutlined />
           返回列表
@@ -219,11 +227,12 @@
               style="margin-bottom: 16px"
             />
           </div>
-          
+  
           <!-- 使用材料模板同步组件 -->
           <MaterialTemplateSync
             ref="materialTemplateSyncRef"
             business-type="apply"
+            :project-data="formData"
             :key="`material-sync-${Date.now()}`"
             @files-change="handleFilesChange"
             @validation-change="handleValidationChange"
@@ -232,6 +241,7 @@
             @upload-error="handleUploadError"
             @upload-progress="handleUploadProgress"
           />
+
         </div>
 
         <!-- 表单操作 -->
@@ -250,6 +260,37 @@
       </a-form>
     </a-card>
   </div>
+
+  <!-- 在线填报弹窗 -->
+  <!-- <a-modal
+    v-model:open="onlineFormModalVisible"
+    title="在线填报"
+    width="80%"
+    :footer="null"
+    @cancel="handleOnlineFormModalCancel"
+  >
+    <div class="online-form-modal-content">
+      <p>请选择您要进行的在线填报类型：</p>
+      <div class="online-form-options">
+        <a-card hoverable class="form-option-card" @click="openNewOnlineForm">
+          <template #cover>
+            <div class="card-cover">
+              <ExperimentOutlined style="font-size: 48px; color: #1890ff;" />
+            </div>
+          </template>
+          <a-card-meta title="新版在线填报" description="使用新版在线填报系统提交项目申请" />
+        </a-card>
+        <a-card hoverable class="form-option-card" @click="openBudgetOnline">
+          <template #cover>
+            <div class="card-cover">
+              <MoneyCollectOutlined style="font-size: 48px; color: #52c41a;" />
+            </div>
+          </template>
+          <a-card-meta title="经费预算在线填报" description="使用在线系统填写项目经费预算" />
+        </a-card>
+      </div>
+    </div>
+  </a-modal> -->
 </template>
 
 <script setup>
@@ -264,7 +305,9 @@ import {
   UploadOutlined,
   SaveOutlined,
   SendOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  ExperimentOutlined,
+  MoneyCollectOutlined
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import FilePreview from '@/components/th_qd/FilePreview.vue'
@@ -375,6 +418,83 @@ const reviewComments = ref('')
 const previewVisible = ref(false)
 const currentPreviewFile = ref({})
 
+// 在线填报弹窗显示状态
+const onlineFormModalVisible = ref(false)
+const onlineFormFrame = ref(null)
+
+// 经费预算在线填报弹窗显示状态
+const budgetFormModalVisible = ref(false)
+const budgetFormFrame = ref(null)
+
+// 显示在线填报弹窗
+const showOnlineFormModal = () => {
+  onlineFormModalVisible.value = true
+}
+
+// 处理在线填报弹窗取消
+const handleOnlineFormModalCancel = () => {
+  onlineFormModalVisible.value = false
+}
+
+// 显示经费预算在线填报弹窗
+const showBudgetFormModal = () => {
+  budgetFormModalVisible.value = true
+}
+
+// 处理经费预算在线填报弹窗取消
+const handleBudgetFormModalCancel = () => {
+  budgetFormModalVisible.value = false
+}
+
+// 处理在线表单加载完成
+const handleOnlineFormLoad = () => {
+  // 可以在这里添加一些加载完成后的操作
+  console.log('在线填报表单已加载完成')
+  
+  // 尝试向iframe传递初始数据
+  if (onlineFormFrame.value && formData.value.projectName) {
+    try {
+      const iframeWindow = onlineFormFrame.value.contentWindow
+      if (iframeWindow && iframeWindow.postMessage) {
+        iframeWindow.postMessage({
+          type: 'INIT_FORM_DATA',
+          data: {
+            projectName: formData.value.projectName,
+            department: formData.value.department,
+            budget: formData.value.budget
+          }
+        }, '*')
+      }
+    } catch (error) {
+      console.error('无法向iframe传递数据:', error)
+    }
+  }
+}
+
+// 处理经费预算表单加载完成
+const handleBudgetFormLoad = () => {
+  // 可以在这里添加一些加载完成后的操作
+  console.log('经费预算表单已加载完成')
+  
+  // 尝试向iframe传递初始数据
+  if (budgetFormFrame.value && formData.value.projectName) {
+    try {
+      const iframeWindow = budgetFormFrame.value.contentWindow
+      if (iframeWindow && iframeWindow.postMessage) {
+        iframeWindow.postMessage({
+          type: 'INIT_FORM_DATA',
+          data: {
+            projectName: formData.value.projectName,
+            budget: formData.value.budget
+          }
+        }, '*')
+      }
+    } catch (error) {
+      console.error('无法向iframe传递数据:', error)
+    }
+  }
+}
+
 const CreateProject = async () => {
   if (submitting.value) return false
 
@@ -462,14 +582,14 @@ const CreateProject = async () => {
       
       const materialPromises = uploadedFiles.map(async (fileData) => {
         const { configId, config, file } = fileData
-        const fileSuffix = getFileExtFromUrl(file.url)
+        const fileSuffix = getFileExtFromUrl(file.fileUrl || file.url)
         // 构造材料数据
         const materialData = {
           projectId: finalProjectId,
           materialType: config.categoryType,
-          materialName: config.categoryName || file.name,
+          materialName: config.categoryName || file.fileName || file.name,
           // templateFileName: config.templateFileName,
-          fileUrl: file.url,
+          fileUrl: file.fileUrl || file.url,
           fileSize: file.fileSize || 0,
           fileSuffix: fileSuffix,
           isRequired: config.isRequired ? 1 : 0,
@@ -536,17 +656,29 @@ const CreateProject = async () => {
 }
 
 function getFileExtFromUrl(url) {
+	// 添加参数检查，防止undefined
+	if (!url || typeof url !== 'string') {
+		console.warn('getFileExtFromUrl: 无效的URL参数', url);
+		return '';
+	}
+	
 	try {
 		const pathname = new URL(url).pathname; // 更稳健的解析
 		const filename = pathname.split('/').pop() || '';
 		const match = filename.match(/\.([^.\/?#]+)$/);
 		return match ? match[1].toLowerCase() : '';
-	} catch {
+	} catch (e) {
+		console.warn('getFileExtFromUrl: URL解析失败，使用备用方法', e);
 		// 兜底：非标准 URL 字符串
-		const clean = url.split(/[?#]/)[0];
-		const filename = clean.split('/').pop() || '';
-		const idx = filename.lastIndexOf('.');
-		return idx > -1 ? filename.slice(idx + 1).toLowerCase() : '';
+		try {
+			const clean = url.split(/[?#]/)[0];
+			const filename = clean.split('/').pop() || '';
+			const idx = filename.lastIndexOf('.');
+			return idx > -1 ? filename.slice(idx + 1).toLowerCase() : '';
+		} catch (err) {
+			console.error('getFileExtFromUrl: 备用方法也失败', err);
+			return '';
+		}
 	}
 }
 
@@ -558,7 +690,7 @@ const disabledDate = (current) => {
 
 // 事件处理方法
 const goBack = () => {
-  router.push('/th-qd-project/approval/index/approval/applicant/manage')
+  router.push('/th-qd-project/approval/approval/applicant/manage')
 
 }
 
@@ -922,7 +1054,25 @@ onMounted(() => {
       }
     })()
   }
-})
+  
+
+  })
+
+// 打开新版在线填报页面
+const openNewOnlineForm = () => {
+  // 关闭弹窗
+  onlineFormModalVisible.value = false
+  // 跳转到在线填报页面
+  router.push('/th-qd-project/approval/online-form-new')
+}
+
+// 打开经费预算在线填报页面
+const openBudgetOnline = () => {
+  // 关闭弹窗
+  onlineFormModalVisible.value = false
+  // 跳转到经费预算在线填报页面
+  router.push('/th-qd-project/approval/online-budget')
+}
 </script>
 
 <style scoped>
@@ -1085,5 +1235,36 @@ onMounted(() => {
     width: 100%;
     justify-content: flex-start;
   }
+}
+
+/* 在线填报弹窗样式 */
+.online-form-modal-content {
+  padding: 16px 0;
+}
+
+.online-form-options {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+  justify-content: center;
+}
+
+.form-option-card {
+  width: 300px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.form-option-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-cover {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafafa;
 }
 </style> 

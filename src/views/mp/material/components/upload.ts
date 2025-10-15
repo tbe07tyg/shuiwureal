@@ -3,7 +3,7 @@ import { getRefreshToken } from '@/utils/auth'
 import { UploadType, useBeforeUpload } from '@/views/mp/hooks/useUpload'
 
 const HEADERS = { Authorization: 'Bearer ' + getRefreshToken() } // 请求头（解决 el-upload 上传过程中，无法刷新令牌的问题）
-const UPLOAD_URL = import.meta.env.VITE_BASE_URL + '/admin-api/mp/material/upload-permanent' // 上传地址
+const UPLOAD_URL = '/api/mp/material/upload-permanent' // 上传地址
 
 interface UploadData {
   type: UploadType

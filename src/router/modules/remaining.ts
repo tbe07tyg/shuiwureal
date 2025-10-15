@@ -888,35 +888,76 @@ const remainingRouter: AppRouteRecordRaw[] = [
     path: '/',
     component: Layout,
     name: 'ThQd',
-    // redirect: '/index',
+    redirect: '/index',
     meta: {
       hidden: true,
-      title: 'TH项目管理',
+      title: '水务科研管理',
       icon: 'ep:office-building',
       rank: 100
     },
     children: [
+
       {
         path: 'index',
-        name: 'ThQdDashboard',
-        component: () => import('@/views/th_qd/dashboard/index.vue'),
+        name: 'ThQdUsersDashboard12',
+        component: () => import('@/views/th_qd/dashboard/users.vue'),
         meta: {
-          title: '管理工作台',
-          icon: 'ep:monitor'
+          title: '测试工作台',
+          icon: 'ep:plus'
         }
       },
-      {
-        path: 'UserManagement',
-        name: 'ThQdUserManagement',
-        component: () => import('@/views/th_qd/dashboard/user.vue'),
-        meta: {
-          title: '用户管理',
-          icon: 'ep:monitor'
-        }
-      }
       
     ]
   },
+
+
+
+
+
+//工作台
+    {
+    path: '/dashboard',
+    component: Layout,
+    name: 'ThQdDashboard',
+    meta: {
+      title: '工作台',
+      icon: 'ep:folder',
+      hidden: true,
+    },
+    children: [
+      {
+        path: 'index',
+        name: 'ThQdDashboardIndex',
+        component: () => import('@/views/th_qd/dashboard/index.vue'),
+        meta: {
+          title: '管理工作台',
+          icon: 'ep:document'
+        },
+      },
+      {
+        path: 'user',
+        name: 'ThQdUserDashboard',
+        component: () => import('@/views/th_qd/dashboard/user.vue'),
+        meta: {
+          title: '我的工作台',
+          icon: 'ep:plus'
+        }
+      },
+      {
+        path: 'users',
+        name: 'ThQdUsersDashboard',
+        component: () => import('@/views/th_qd/dashboard/users.vue'),
+        meta: {
+          title: '测试工作台',
+          icon: 'ep:plus'
+        }
+      },
+    ]
+      
+  },
+
+
+  
   
   // TH项目管理 - 项目管理
   {
@@ -1021,13 +1062,60 @@ const remainingRouter: AppRouteRecordRaw[] = [
           },
           {
             //approval/applicant/submit
-            path: 'applicant/submit',
+            path: 'approval/applicant/submit',
             name: 'ThQdApprovalApplicantSubmit',
             component: () => import('@/views/th_qd/approval/applicant/submit.vue'),
             meta: {
               title: '项目立项提交',
               icon: 'ep:upload',
               hidden: true
+            }
+          },
+          {
+            // 兼容错误的相对路径：/th-qd-project/approval/index/approval/applicant/submit → 重定向到旧页
+            path: 'index/approval/applicant/submit',
+            name: 'ThQdApprovalApplicantSubmitAlias',
+            redirect: '/th-qd-project/approval/applicant/submit',
+            meta: {
+              hidden: true,
+              noCache: true,
+              canTo: true
+            }
+          },
+          {
+            // 新版在线填报页面（独立功能，完全独立路径，不在菜单显示）
+            path: 'applicant/online-form-new',
+            name: 'ThQdApprovalOnlineFormNew',
+            component: () => import('@/views/th_qd/approval/applicant/submit-online.vue'),
+            meta: {
+              title: '在线填报（新版实验）',
+              hidden: true,
+              noCache: true,
+              canTo: true
+            }
+          },
+          {
+            // 兼容错误路径：/th-qd-project/approval/approval/applicant/online-form-new
+            path: 'approval/applicant/online-form-new',
+            name: 'ThQdApprovalOnlineFormNewAlias',
+            component: () => import('@/views/th_qd/approval/applicant/submit-online.vue'),
+            meta: {
+              title: '在线填报（新版实验）',
+              hidden: true,
+              noCache: true,
+              canTo: true
+            }
+          },
+          {
+            path: 'online-budget',
+            name: 'ThQdApprovalBudgetOnline',
+            component: () => import('@/views/th_qd/approval/applicant/budget-online.vue'),
+            meta: {
+              title: '经费预算在线填报',
+              icon: 'ep:money',
+              hidden: true,
+              noCache: true,
+              canTo: true
             }
           },
           {

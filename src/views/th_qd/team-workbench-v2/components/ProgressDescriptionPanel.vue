@@ -225,9 +225,9 @@ const recordFilter = ref('all')
 // 计算属性
 const filteredRecords = computed(() => {
   if (recordFilter.value === 'all') {
-    return props.progressRecords.sort((a, b) => new Date(b.date) - new Date(a.date))
+    return [...props.progressRecords].sort((a, b) => new Date(b.date) - new Date(a.date))
   }
-  return props.progressRecords
+  return [...props.progressRecords]
     .filter(record => record.type === recordFilter.value)
     .sort((a, b) => new Date(b.date) - new Date(a.date))
 })
