@@ -63,11 +63,11 @@ export const useUserStore = defineStore('admin-user', {
         } catch (error) {}
       }
 
-
-
-
-
-
+      // 添加安全检查，避免 userInfo 为 undefined 时报错
+      if (!userInfo || !userInfo.permissions) {
+        console.warn('用户信息或权限数据为空，跳过设置')
+        return
+      }
       
       this.permissions = new Set(userInfo.permissions)
       this.roles = userInfo.roles
