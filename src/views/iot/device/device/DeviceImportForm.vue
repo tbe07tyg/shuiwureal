@@ -54,7 +54,7 @@ const dialogVisible = ref(false) // 弹窗的是否展示
 const formLoading = ref(false) // 表单的加载中
 const uploadRef = ref()
 const importUrl =
-  '/api/iot/device/import'
+  import.meta.env.VITE_BASE_URL + import.meta.env.VITE_API_URL + '/iot/device/import'
 const uploadHeaders = ref() // 上传 Header 头
 const fileList = ref([]) // 文件列表
 const updateSupport = ref(0) // 是否更新已经存在的设备数据

@@ -79,7 +79,7 @@ defineOptions({ name: 'InfraWebSocket' })
 const message = useMessage() // 消息弹窗
 
 const server = ref(
-  'wss://bd112867579w.vicp.fun/admin-api/infra/ws' +
+  (import.meta.env.VITE_BASE_URL + '/infra/ws').replace('http', 'ws') +
     '?token=' +
     getRefreshToken() // 使用 getRefreshToken() 方法，而不使用 getAccessToken() 方法的原因：WebSocket 无法方便的刷新访问令牌
 ) // WebSocket 服务地址

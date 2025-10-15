@@ -1,17 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://bd112867579w.vicp.fun/admin-api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "buildCommand": "pnpm build:prod",
+  "outputDirectory": "dist",
+  "installCommand": "pnpm install",
+  "framework": "vite"
 }
-

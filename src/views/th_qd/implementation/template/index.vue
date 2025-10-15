@@ -58,7 +58,7 @@ import { ref } from 'vue'
 import draggable from 'vuedraggable'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { useNodeTemplateStore } from '@/store/modules/th_qd/nodeTemplate'
+import { useNodeTemplateStore } from '@/stores/modules/th_qd/nodeTemplate'
 
 const nodeTemplateStore = useNodeTemplateStore()
 const templateList = nodeTemplateStore.templateList

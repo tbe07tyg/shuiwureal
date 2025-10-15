@@ -119,7 +119,7 @@
                 @click="handleJoinMeeting(meeting)"
                 block
               >
-                <PlayCircleOutlined />
+                <VideoCameraOutlined />
                 加入会议
               </a-button>
               <a-button 
@@ -257,7 +257,7 @@ import {
   ClockCircleOutlined,
   EnvironmentOutlined,
   TeamOutlined,
-  PlayCircleOutlined,
+  VideoCameraOutlined,
   FileTextOutlined,
   EditOutlined
 } from '@ant-design/icons-vue'

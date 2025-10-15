@@ -7,7 +7,7 @@ import axios from 'axios'
  * 获得上传 URL
  */
 export const getUploadUrl = (): string => {
-  return '/api/infra/file/upload'
+  return import.meta.env.VITE_BASE_URL + import.meta.env.VITE_API_URL + '/infra/file/upload'
 }
 
 export const useUpload = (directory?: string) => {
