@@ -45,17 +45,10 @@ export const useDictStore = defineStore('dict', {
         this.dictMap = dictMap
         this.isSetDict = true
       } else {
-        try {
-          const res = await getSimpleDictDataList()
-          // 检查返回数据是否有效
-          if (!res || !Array.isArray(res)) {
-            console.warn('字典数据API返回无效数据:', res)
-            this.dictMap = new Map<string, any>()
-            this.isSetDict = true
-            return
-          }
-          // 设置数据
-          const dictDataMap = new Map<string, any>()
+        const res = await getSimpleDictDataList()
+        // 设置数据
+        const dictDataMap = new Map<string, any>()
+        if (res && Array.isArray(res)) {
           res.forEach((dictData: DictDataVO) => {
             // 获得 dictType 层级
             const enumValueObj = dictDataMap[dictData.dictType]
@@ -70,14 +63,10 @@ export const useDictStore = defineStore('dict', {
               cssClass: dictData.cssClass
             })
           })
-          this.dictMap = dictDataMap
-          this.isSetDict = true
-          wsCache.set(CACHE_KEY.DICT_CACHE, dictDataMap, { exp: 60 }) // 60 秒 过期
-        } catch (error) {
-          console.error('获取字典数据失败:', error)
-          this.dictMap = new Map<string, any>()
-          this.isSetDict = true
         }
+        this.dictMap = dictDataMap
+        this.isSetDict = true
+        wsCache.set(CACHE_KEY.DICT_CACHE, dictDataMap, { exp: 60 }) // 60 秒 过期
       }
     },
     getDictByType(type: string) {
@@ -88,17 +77,10 @@ export const useDictStore = defineStore('dict', {
     },
     async resetDict() {
       wsCache.delete(CACHE_KEY.DICT_CACHE)
-      try {
-        const res = await getSimpleDictDataList()
-        // 检查返回数据是否有效
-        if (!res || !Array.isArray(res)) {
-          console.warn('字典数据API返回无效数据:', res)
-          this.dictMap = new Map<string, any>()
-          this.isSetDict = true
-          return
-        }
-        // 设置数据
-        const dictDataMap = new Map<string, any>()
+      const res = await getSimpleDictDataList()
+      // 设置数据
+      const dictDataMap = new Map<string, any>()
+      if (res && Array.isArray(res)) {
         res.forEach((dictData: DictDataVO) => {
           // 获得 dictType 层级
           const enumValueObj = dictDataMap[dictData.dictType]
@@ -113,14 +95,10 @@ export const useDictStore = defineStore('dict', {
             cssClass: dictData.cssClass
           })
         })
-        this.dictMap = dictDataMap
-        this.isSetDict = true
-        wsCache.set(CACHE_KEY.DICT_CACHE, dictDataMap, { exp: 60 }) // 60 秒 过期
-      } catch (error) {
-        console.error('重置字典数据失败:', error)
-        this.dictMap = new Map<string, any>()
-        this.isSetDict = true
       }
+      this.dictMap = dictDataMap
+      this.isSetDict = true
+      wsCache.set(CACHE_KEY.DICT_CACHE, dictDataMap, { exp: 60 }) // 60 秒 过期
     }
   }
 })
